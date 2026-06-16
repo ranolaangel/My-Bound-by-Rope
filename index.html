@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bound by the Rope 🪢🏔️ - 3D Web Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #1a1a1a;
+            color: white;
+            overflow: hidden;
+        }
+
+        #menuScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            text-align: center;
+        }
+
+        #menuScreen.hidden {
+            display: none;
+        }
+
+        #menuScreen h1 {
+            font-size: 4em;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        #menuScreen .story {
+            max-width: 600px;
+            font-size: 1.1em;
+            margin-bottom: 40px;
+            line-height: 1.6;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid white;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            backdrop-filter: blur(10px);
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 255, 255, 0.3);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        #gameContainer {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            display: none;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            font-size: 1.1em;
+            z-index: 100;
+            min-width: 250px;
+        }
+
+        .hud h3 {
+            margin-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .hud-item {
+            margin: 8px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .hud-item .label {
+            opacity: 0.7;
+        }
+
+        .hud-item .value {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .rope-status {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .rope-status.critical {
+            color: #FF6B6B;
+        }
+
+        .controls-display {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.9em;
+            z-index: 100;
+            max-width: 300px;
+        }
+
+        .controls-display h4 {
+            margin-bottom: 10px;
+            color: #667eea;
+        }
+
+        .player-controls {
+            margin: 10px 0;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            border-left: 3px solid;
+        }
+
+        .player-controls.p1 {
+            border-left-color: #FF6B6B;
+        }
+
+        .player-controls.p2 {
+            border-left-color: #4ECDC4;
+        }
+
+        .player-controls p {
+            margin: 3px 0;
+            font-size: 0.85em;
+        }
+
+        .victory-modal, .gameover-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            text-align: center;
+        }
+
+        .victory-modal.show, .gameover-modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 50px;
+            border-radius: 15px;
+            border: 2px solid #667eea;
+        }
+
+        .modal-content h1 {
+            font-size: 3em;
+            margin-bottom: 20px;
+        }
+
+        .modal-content p {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 107, 107, 0.8);
+            border: none;
+            z-index: 200;
+        }
+
+        .back-button:hover {
+            background: rgba(255, 107, 107, 1);
+        }
+
+        @media (max-width: 768px) {
+            #menuScreen h1 {
+                font-size: 2.5em;
+            }
+
+            .hud {
+                font-size: 0.9em;
+                padding: 15px;
+                min-width: 200px;
+            }
+
+            .controls-display {
+                font-size: 0.8em;
+                padding: 15px;
+            }
+
+            .button-group {
+                gap: 10px;
+            }
+
+            button {
+                padding: 12px 25px;
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Menu Screen -->
+    <div id="menuScreen">
+        <h1>🪢 BOUND BY THE ROPE 🪢</h1>
+        <div class="story">
+            <p>Legend says the Summit only accepts pairs.</p>
+            <p style="margin: 15px 0;">Two climbers. One rope. One fate.</p>
+            <p style="font-size: 0.95em; opacity: 0.8;">A sudden storm shredded your gear. All you have left is a single frayed rope tied between you. Now the only way out is up.</p>
+            <p style="margin-top: 20px;">The cliffs are crumbling. The winds are cruel. Will your bond hold, or will it snap?</p>
+        </div>
+        <div class="button-group">
+            <button onclick="startGame()">🎮 Start Climbing</button>
+            <button onclick="showInstructions()">❓ How to Play</button>
+        </div>
+    </div>
+
+    <!-- Game Container -->
+    <div id="gameContainer">
+        <!-- HUD -->
+        <div class="hud">
+            <h3>📊 Mountain Status</h3>
+            <div class="hud-item">
+                <span class="label">Player 1:</span>
+                <span class="value" id="p1Height">0m</span>
+            </div>
+            <div class="hud-item">
+                <span class="label">Player 2:</span>
+                <span class="value" id="p2Height">0m</span>
+            </div>
+            <div class="hud-item">
+                <span class="label">Distance Apart:</span>
+                <span class="value" id="ropeDistance">5.0</span>
+            </div>
+            <div class="hud-item">
+                <span class="label">Target Height:</span>
+                <span class="value">50m</span>
+            </div>
+            <div class="rope-status" id="ropeStatus">
+                <span class="label">Rope Status: </span>
+                <span class="value" id="ropeStatusText">🟢 Strong</span>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-display">
+            <h4>⌨️ CONTROLS</h4>
+            <div class="player-controls p1">
+                <p><strong>Player 1 (Red)</strong></p>
+                <p>← → Move</p>
+                <p>↑ ↓ Climb</p>
+                <p>Space Jump</p>
+            </div>
+            <div class="player-controls p2">
+                <p><strong>Player 2 (Cyan)</strong></p>
+                <p>A D Move</p>
+                <p>W S Climb</p>
+                <p>E Jump</p>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <button class="back-button" onclick="backToMenu()">← Menu</button>
+    </div>
+
+    <!-- Victory Modal -->
+    <div class="victory-modal" id="victoryModal">
+        <div class="modal-content">
+            <h1>🏔️ SUMMIT REACHED! 🏔️</h1>
+            <p>You planted the flag together!</p>
+            <p style="font-size: 1em; opacity: 0.8;">Your bond held strong against the mountain.</p>
+            <div class="button-group" style="margin-top: 30px;">
+                <button onclick="startGame()">🎮 Climb Again</button>
+                <button onclick="backToMenu()">← Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Modal -->
+    <div class="gameover-modal" id="gameoverModal">
+        <div class="modal-content" style="border-color: #FF6B6B;">
+            <h1 style="color: #FF6B6B;">⚠️ ROPE BROKEN! ⚠️</h1>
+            <p>You fell apart...</p>
+            <p style="font-size: 1em; opacity: 0.8;">Don't let the distance between you grow too great.</p>
+            <div class="button-group" style="margin-top: 30px;">
+                <button onclick="startGame()">🎮 Try Again</button>
+                <button onclick="backToMenu()">← Main Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Game Script -->
+    <script src="game.js"></script>
+</body>
+</html>

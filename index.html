@@ -353,5 +353,48 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Game Script -->
     <script src="game.js"></script>
+    <!-- Mobile Controls Start -->
+<style>
+  #mobile-controls { 
+    position: fixed; bottom: 20px; width: 100%; 
+    display: flex; justify-content: space-between; z-index: 999; 
+    user-select: none;
+  }
+  .btn-group { display: flex; gap: 10px; padding: 0 20px; }
+  .touch-btn { 
+    width: 60px; height: 60px; background: rgba(0,0,0,0.5); 
+    border: 2px solid white; border-radius: 50%; color: white; 
+    font-weight: bold; font-size: 24px; text-align: center;
+  }
+  .touch-btn:active { background: rgba(255,255,255,0.5); }
+  @media (min-width: 768px) { #mobile-controls { display: none; } }
+</style>
+
+<div id="mobile-controls">
+  <div class="btn-group">
+    <button class="touch-btn" id="p1-left">←</button>
+    <button class="touch-btn" id="p1-right">→</button>
+  </div>
+  <div class="btn-group">
+    <button class="touch-btn" id="p1-jump">J</button>
+    <button class="touch-btn" id="p1-up">↑</button>
+  </div>
+</div>
+
+<script>
+  function sendKey(key, type) {
+    document.dispatchEvent(new KeyboardEvent(type, {'key': key, 'bubbles': true}));
+  }
+  const btns = [
+    ['p1-left', 'ArrowLeft'], ['p1-right', 'ArrowRight'], 
+    ['p1-jump', ' '], ['p1-up', 'ArrowUp']
+  ];
+  btns.forEach(([id, key]) => {
+    const el = document.getElementById(id);
+    el.addEventListener('touchstart', (e) => { e.preventDefault(); sendKey(key, 'keydown'); });
+    el.addEventListener('touchend', (e) => { e.preventDefault(); sendKey(key, 'keyup'); });
+  });
+</script>
+<!-- Mobile Controls End -->
 </body>
 </html>

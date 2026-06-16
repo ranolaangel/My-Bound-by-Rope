@@ -58,7 +58,7 @@ function initThreeJS() {
 // ============================================
 
 function createPlayer(x, z, color, name) {
-    const geometry = new THREE.CapsuleGeometry(0.5, 1.5, 8, 16);
+    const geometry = new THREE.CylinderGeometry(0.5, 1.5, 8, 16);
     const material = new THREE.MeshStandardMaterial({
         color: color,
         metalness: 0.5,
